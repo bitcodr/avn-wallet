@@ -1,2 +1,4 @@
 MESSAGES:
   PARAM_EMPTY: "params are empty"
+  PARSE_CELLPHONE: "cannot parse cellphone"
+  DATA_NOT_FOUND: "data not found"

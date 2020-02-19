@@ -1,6 +1,7 @@
 APP:
   URL: localhost
   PORT: 3470
+  DEBUG: FALSE
 
 DATABASES:
   MYSQL:

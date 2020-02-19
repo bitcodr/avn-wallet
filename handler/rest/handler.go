@@ -12,7 +12,6 @@ import (
 	"github.com/amiraliio/avn-wallet/serializer/json"
 	"github.com/amiraliio/avn-wallet/serializer/msgpack"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 )
 
 type WalletHandler interface {
@@ -42,32 +41,23 @@ func (h *walletHandler) serializer(contentType string) service.WalletSerializer 
 }
 
 func (w *walletHandler) Get(res http.ResponseWriter, req *http.Request) {
+	acceptHeader := req.Header.Get("Accept")
 	params := mux.Vars(req)
 	if params == nil {
-		http.Error(res, config.LangConfig.GetString("MESSAGES.PARAM_EMPTY"), http.StatusUnprocessableEntity)
+		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, acceptHeader, "W-1000", config.LangConfig.GetString("MESSAGES.PARAM_EMPTY"))
 		return
 	}
-	cellphone, err := strconv.ParseUint(params["cellphone"], 10, 32)
+	cellphone, err := strconv.ParseUint(params["cellphone"], 10, 64)
 	if err != nil {
-		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		helper.ResponseError(res, err, http.StatusInternalServerError, acceptHeader, "W-1001", config.LangConfig.GetString("MESSAGES.PARSE_CELLPHONE"))
 		return
 	}
-	wallet, err := w.walletService.Get(uint(cellphone))
+	wallet, err := w.walletService.Get(cellphone)
 	if err != nil {
-		if errors.Cause(err) == service.ErrWalletNotFound {
-			http.Error(res, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			return
-		}
-		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		helper.ResponseError(res, err, http.StatusNotFound, acceptHeader, "W-1002", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
-	requestAccept := req.Header.Get("Accept")
-	walletSerializer, err := w.serializer(requestAccept).Encode(wallet)
-	if err != nil {
-		http.Error(res, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	helper.SetupResponse(res, requestAccept, walletSerializer, http.StatusOK)
+	helper.ResponseOk(res, http.StatusOK, acceptHeader, wallet)
 }
 
 func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {

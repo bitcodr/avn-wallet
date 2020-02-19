@@ -8,7 +8,6 @@ type Transaction struct {
 	Status      string    `json:"status" msgpack:"status" validate:"required"`
 	Description string    `json:"description" msgpack:"status" validate:"required"`
 	CreatedAt   string    `json:"createdAt" msgpack:"createdAt"`
-	UpdatedAt   string    `json:"updatedAt" msgpack:"updatedAt"`
 	Cause       string    `json:"cause" msgpack:"cause"`
 	Balance     uint64   `json:"balance" msgpack:"balance" validate:"required"`
 	User        *User     `json:"user" msgpack:"user"`

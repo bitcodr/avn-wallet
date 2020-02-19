@@ -13,12 +13,12 @@ var (
 )
 
 type WalletService interface {
-	Get(cellphone uint) (*model.Wallet, error)
+	Get(cellphone uint64) (*model.Wallet, error)
 	Insert(wallet *model.Wallet) (*model.Wallet, error)
 }
 
 type WalletRepository interface {
-	Get(cellphone uint) (*model.Wallet, error)
+	Get(cellphone uint64) (*model.Wallet, error)
 	Insert(wallet *model.Wallet) (*model.Wallet, error)
 }
 
@@ -37,7 +37,7 @@ func NewWalletService(walletRepo WalletRepository) WalletService {
 	}
 }
 
-func (w *walletService) Get(cellphone uint) (*model.Wallet, error) {
+func (w *walletService) Get(cellphone uint64) (*model.Wallet, error) {
 	return w.walletRepo.Get(cellphone)
 }
 

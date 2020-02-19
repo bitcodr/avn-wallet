@@ -33,9 +33,9 @@ func HTTP(app *config.App, router *mux.Router) {
 
 	walletRestHandler := rest.NewRestWalletHandler(walletService)
 
-	router.HandleFunc("wallet/{cellphone}", walletRestHandler.Get).Methods(http.MethodGet).Name(REST_GET_WALLET)
-	router.HandleFunc("wallet/{cellphone}", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
-	router.HandleFunc("wallet/{cellphone}/transactions", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
+	router.HandleFunc("/wallet/{cellphone}", walletRestHandler.Get).Methods(http.MethodGet).Name(REST_GET_WALLET)
+	router.HandleFunc("/wallet/{cellphone}", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
+	router.HandleFunc("/wallet/{cellphone}/transactions", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
 
 }
 
