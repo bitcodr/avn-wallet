@@ -36,3 +36,22 @@ func (w *walletRepo) Insert(wallet *model.Wallet) (*model.Wallet, error) {
 	}
 	return walletModel, nil
 }
+
+func (w *walletRepo) Transactions(cellphone uint64) ([]*model.Transaction, error) {
+	db := w.app.DB()
+	defer db.Close()
+	row, err := db.Query("call getTransactions(?)", cellphone)
+	if err != nil {
+		return nil, err
+	}
+	defer row.Close()
+	var transactions []*model.Transaction
+	for row.Next() {
+		transaction := new(model.Transaction)
+		if err := row.Scan(&transaction.ID, &transaction.Balance, &transaction.Type, &transaction.CreatedAt, &transaction.Cause, &transaction.Description); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
+}

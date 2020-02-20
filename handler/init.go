@@ -14,6 +14,7 @@ import (
 const (
 	REST_GET_WALLET    = "REST_GET_WALLET"
 	REST_INSERT_WALLET = "REST_INSERT_WALLET"
+	REST_WALLET_TRANSACTIONS = "REST_WALLET_TRANSACTIONS"
 )
 
 func chooseWalletRepo(connection string, app *config.App) service.WalletRepository {
@@ -35,7 +36,7 @@ func HTTP(app *config.App, router *mux.Router) {
 
 	router.HandleFunc("/wallet/{cellphone}", walletRestHandler.Get).Methods(http.MethodGet).Name(REST_GET_WALLET)
 	router.HandleFunc("/wallet", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
-	router.HandleFunc("/wallet/{cellphone}/transactions", walletRestHandler.Insert).Methods(http.MethodPost).Name(REST_INSERT_WALLET)
+	router.HandleFunc("/wallet/{cellphone}/transactions", walletRestHandler.Transactions).Methods(http.MethodGet).Name(REST_WALLET_TRANSACTIONS)
 
 }
 

@@ -9,6 +9,6 @@ type Transaction struct {
 	Description string    `json:"description" msgpack:"status" validate:"required"`
 	CreatedAt   string    `json:"createdAt" msgpack:"createdAt"`
 	Cause       string    `json:"cause" msgpack:"cause"`
-	Balance     uint64   `json:"balance" msgpack:"balance" validate:"required"`
+	Balance     float64   `json:"balance" msgpack:"balance" validate:"required"`
 	User        *User     `json:"user" msgpack:"user"`
 }

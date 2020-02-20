@@ -15,11 +15,13 @@ var (
 type WalletService interface {
 	Get(cellphone uint64) (*model.Wallet, error)
 	Insert(wallet *model.Wallet) (*model.Wallet, error)
+	Transactions(cellphone uint64) ([]*model.Transaction, error)
 }
 
 type WalletRepository interface {
 	Get(cellphone uint64) (*model.Wallet, error)
 	Insert(wallet *model.Wallet) (*model.Wallet, error)
+	Transactions(cellphone uint64) ([]*model.Transaction, error)
 }
 
 type WalletSerializer interface {
@@ -46,4 +48,8 @@ func (w *walletService) Insert(wallet *model.Wallet) (*model.Wallet, error) {
 		return nil, err
 	}
 	return w.walletRepo.Insert(wallet)
+}
+
+func (w *walletService) Transactions(cellphone uint64) ([]*model.Transaction, error) {
+	return w.walletRepo.Transactions(cellphone)
 }
