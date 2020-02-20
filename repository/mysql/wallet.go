@@ -17,8 +17,8 @@ func NewMysqlWalletRepository(app *config.App) service.WalletRepository {
 	}
 }
 
-func (m *walletRepo) Get(cellphone uint64) (*model.Wallet, error) {
-	db := m.app.DB()
+func (w *walletRepo) Get(cellphone uint64) (*model.Wallet, error) {
+	db := w.app.DB()
 	defer db.Close()
 	wallet := new(model.Wallet)
 	if err := db.QueryRow("call getWallet(?)", cellphone).Scan(&wallet.Charge); err != nil {
@@ -28,5 +28,11 @@ func (m *walletRepo) Get(cellphone uint64) (*model.Wallet, error) {
 }
 
 func (w *walletRepo) Insert(wallet *model.Wallet) (*model.Wallet, error) {
-	return nil, nil
+	db := w.app.DB()
+	defer db.Close()
+	walletModel := new(model.Wallet)
+	if err := db.QueryRow("call insertWallet(?,?)", wallet.Charge, wallet.User.Cellphone).Scan(&walletModel.Charge); err != nil {
+		return nil, err
+	}
+	return walletModel, nil
 }

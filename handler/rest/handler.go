@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/amiraliio/avn-wallet/helper"
-
 	"github.com/amiraliio/avn-wallet/config"
+	"github.com/amiraliio/avn-wallet/domain/model"
 	"github.com/amiraliio/avn-wallet/domain/service"
+	"github.com/amiraliio/avn-wallet/helper"
 	"github.com/amiraliio/avn-wallet/serializer/json"
 	"github.com/amiraliio/avn-wallet/serializer/msgpack"
 	"github.com/gorilla/mux"
@@ -61,5 +61,20 @@ func (w *walletHandler) Get(res http.ResponseWriter, req *http.Request) {
 }
 
 func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
-
+	acceptHeader := req.Header.Get("Accept")
+	promotionCode := req.FormValue("promotionCode")
+	if promotionCode == "" {
+		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, acceptHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
+		return
+	}
+	//TODO get promotion code is verified from promotion server with grpc
+	walletModel := new(model.Wallet)
+	wallet, err := w.walletService.Insert(walletModel)
+	if err != nil {
+		helper.ResponseError(res, err, http.StatusNotFound, acceptHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
+		return
+	}
+	//TODO send an event to promotion server who get the promotion
+	//TODO waite for acknowledge from broker
+	helper.ResponseOk(res, http.StatusOK, acceptHeader, wallet)
 }

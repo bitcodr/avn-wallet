@@ -21,6 +21,8 @@ func HTTP() {
 
 	handler.HTTP(app, router)
 
+	router.Use(mux.CORSMethodMiddleware(router))
+
 	errs := make(chan error, 2)
 
 	go func() {
