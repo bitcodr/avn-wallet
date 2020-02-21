@@ -3,6 +3,8 @@ package rest
 
 import (
 	"context"
+	jsonEncoder "encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -66,18 +68,31 @@ func (w *walletHandler) Get(res http.ResponseWriter, req *http.Request) {
 
 func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 	contentTypeHeader := req.Header.Get("Content-Type")
-	promotionCode := req.FormValue("promotionCode")
-	if promotionCode == "" {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
+		return
+	}
+	defer req.Body.Close()
+	chargeRequest := new(model.ChargeRequest)
+	if err := jsonEncoder.Unmarshal(body, chargeRequest); err != nil {
 		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
 		return
 	}
-	charge, err := w.getVerifyClient(promotionCode)
+	if chargeRequest.PromotionCode == "" {
+		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
+		return
+	}
+	charge, err := w.getVerifyClient(chargeRequest.PromotionCode)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
 	walletModel := new(model.Wallet)
 	walletModel.Charge = charge
+	userModel := new(model.User)
+	userModel.Cellphone = chargeRequest.Cellphone
+	walletModel.User = userModel
 	wallet, err := w.walletService.Insert(walletModel)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1005", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
