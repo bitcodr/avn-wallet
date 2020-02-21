@@ -41,5 +41,5 @@ func HTTP(app *config.App, router *mux.Router) {
 }
 
 func GRPC(app *config.App) {
-	//implement grpc handler route here
+	//implement grpc handler here
 }

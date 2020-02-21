@@ -2,9 +2,12 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/amiraliio/avn-grpc-promotion-proto/proto"
 	"github.com/amiraliio/avn-wallet/config"
 	"github.com/amiraliio/avn-wallet/domain/model"
 	"github.com/amiraliio/avn-wallet/domain/service"
@@ -68,11 +71,16 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
 		return
 	}
-	//TODO get promotion code is verified from promotion server with grpc
-	walletModel := new(model.Wallet)
-	wallet, err := w.walletService.Insert(walletModel)
+	charge, err := w.getVerifyClient(promotionCode)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
+		return
+	}
+	walletModel := new(model.Wallet)
+	walletModel.Charge = charge
+	wallet, err := w.walletService.Insert(walletModel)
+	if err != nil {
+		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1005", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
 	//TODO send an event to promotion server who get the promotion
@@ -98,4 +106,22 @@ func (w *walletHandler) Transactions(res http.ResponseWriter, req *http.Request)
 		return
 	}
 	helper.ResponseOk(res, http.StatusOK, acceptHeader, transactions)
+}
+
+func (w *walletHandler) getVerifyClient(promotionCode string) (float64, error) {
+	conn, err := helper.ClientConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+	client := proto.NewPromotionClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	requestModel := new(proto.Request)
+	requestModel.PromotionCode = promotionCode
+	response, err := client.Verify(ctx, requestModel)
+	if err != nil {
+		return 0, err
+	}
+	return response.GetCharge(), nil
 }
