@@ -26,8 +26,8 @@ func HTTP() {
 	errs := make(chan error, 2)
 
 	go func() {
-		fmt.Println("Listening on port " + config.AppConfig.GetString("APP.PORT"))
-		errs <- http.ListenAndServe(":"+config.AppConfig.GetString("APP.PORT"), router)
+		fmt.Println("Listening on port " + config.AppConfig.GetString("APP.HTTP_PORT"))
+		errs <- http.ListenAndServe(":"+config.AppConfig.GetString("APP.HTTP_PORT"), router)
 	}()
 
 	go func() {
