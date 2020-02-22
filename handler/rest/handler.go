@@ -120,7 +120,7 @@ func (w *walletHandler) Transactions(res http.ResponseWriter, req *http.Request)
 }
 
 func (w *walletHandler) getVerifyClient(promotionCode string) (float64, error) {
-	conn, err := helper.ClientConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
+	conn, err := config.ClientConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
 	if err != nil {
 		return 0, err
 	}

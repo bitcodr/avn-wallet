@@ -1,4 +1,4 @@
-package helper
+package config
 
 import (
 	"google.golang.org/grpc"
