@@ -79,10 +79,6 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
 		return
 	}
-	if chargeRequest.PromotionCode == "" {
-		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
-		return
-	}
 	charge, err := w.getVerifyClient(chargeRequest.PromotionCode)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
@@ -99,7 +95,7 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	//TODO send an event to promotion server who get the promotion
-	//TODO waite for acknowledge from broker
+	//TODO waite for acknowledge from broker and then change wallet
 	helper.ResponseOk(res, http.StatusOK, contentTypeHeader, wallet)
 }
 
