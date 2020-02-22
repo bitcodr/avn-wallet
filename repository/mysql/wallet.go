@@ -31,9 +31,11 @@ func (w *walletRepo) Insert(wallet *model.Wallet) (*model.Wallet, error) {
 	db := w.app.DB()
 	defer db.Close()
 	walletModel := new(model.Wallet)
-	if err := db.QueryRow("call insertWallet(?,?)", wallet.Charge, wallet.User.Cellphone).Scan(&walletModel.Charge); err != nil {
+	userModel := new(model.User)
+	if err := db.QueryRow("call insertWallet(?,?)", wallet.Charge, wallet.User.Cellphone).Scan(&walletModel.Charge, &userModel.FirstName, &userModel.LastName, &userModel.Cellphone); err != nil {
 		return nil, err
 	}
+	wallet.User = userModel
 	return walletModel, nil
 }
 
@@ -54,4 +56,10 @@ func (w *walletRepo) Transactions(cellphone uint64) ([]*model.Transaction, error
 		transactions = append(transactions, transaction)
 	}
 	return transactions, nil
+}
+
+func (w *walletRepo) Rollback(wallet *model.Wallet) {
+	db := w.app.DB()
+	defer db.Close()
+	_ = db.QueryRow("call rollbackWallet(?,?)", wallet.User.Cellphone, wallet.Charge)
 }

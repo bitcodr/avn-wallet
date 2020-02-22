@@ -94,8 +94,17 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1005", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
-	//TODO send an event to promotion server who get the promotion
-	//TODO waite for acknowledge from broker and then change wallet
+	nats, err := config.NATSClient()
+	if err != nil {
+		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1006", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
+		return
+	}
+	defer nats.Close()
+	chargeRequest.Fullname = wallet.User.FirstName + " " + wallet.User.LastName
+	if err := nats.Publish("promotion_"+strconv.FormatUint(chargeRequest.Cellphone, 10), chargeRequest); err != nil {
+		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1007", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
+		return
+	}
 	helper.ResponseOk(res, http.StatusOK, contentTypeHeader, wallet)
 }
 
@@ -120,7 +129,7 @@ func (w *walletHandler) Transactions(res http.ResponseWriter, req *http.Request)
 }
 
 func (w *walletHandler) getVerifyClient(promotionCode string) (float64, error) {
-	conn, err := config.ClientConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
+	conn, err := config.GRPCConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
 	if err != nil {
 		return 0, err
 	}
