@@ -7,7 +7,7 @@ import (
 )
 
 type Wallet struct {
-	ID        uuid.UUID `json:"id" msgpack:"id" validate:"required"`
+	ID        uuid.UUID `json:"id" msgpack:"id"`
 	Charge    float64   `json:"charge" msgpack:"charge" validate:"required"`
 	CreatedAt time.Time `json:"createdAt" msgpack:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" msgpack:"updatedAt"`
