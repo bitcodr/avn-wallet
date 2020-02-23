@@ -35,7 +35,7 @@ func (w *walletRepo) Insert(wallet *model.Wallet) (*model.Wallet, error) {
 	if err := db.QueryRow("call insertWallet(?,?)", wallet.Charge, wallet.User.Cellphone).Scan(&walletModel.Charge, &userModel.FirstName, &userModel.LastName, &userModel.Cellphone); err != nil {
 		return nil, err
 	}
-	wallet.User = userModel
+	walletModel.User = userModel
 	return walletModel, nil
 }
 

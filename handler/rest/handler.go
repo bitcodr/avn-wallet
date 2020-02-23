@@ -101,7 +101,7 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 	}
 	defer nats.Close()
 	chargeRequest.Fullname = wallet.User.FirstName + " " + wallet.User.LastName
-	if err := nats.Publish("promotion_"+strconv.FormatUint(chargeRequest.Cellphone, 10), chargeRequest); err != nil {
+	if err := nats.Publish("promotion."+strconv.FormatUint(chargeRequest.Cellphone, 10), chargeRequest); err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1007", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
