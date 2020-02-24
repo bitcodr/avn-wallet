@@ -79,7 +79,6 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
 		return
 	}
-	//TODO dupplicate promotion check
 	charge, err := w.getVerifyClient(chargeRequest.PromotionCode)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
