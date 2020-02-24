@@ -3,13 +3,14 @@ module github.com/amiraliio/avn-wallet
 go 1.13
 
 require (
-	github.com/amiraliio/avn-grpc-promotion-proto v1.1.0
+	github.com/amiraliio/avn-grpc-promotion-proto v1.2.0
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
-	github.com/nats-io/nats-server/v2 v2.1.4 // indirect
+	github.com/nats-io/nats-streaming-server v0.17.0 // indirect
 	github.com/nats-io/nats.go v1.9.1
+	github.com/nats-io/stan.go v0.6.0
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.2.2 // indirect

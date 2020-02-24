@@ -4,7 +4,6 @@ import (
 	nats "github.com/nats-io/nats.go"
 )
 
-//TODO needs to refactor as a general broker config
 
 func NATSClient() (*nats.EncodedConn, error) {
 	conn, err := nats.Connect(nats.DefaultURL)

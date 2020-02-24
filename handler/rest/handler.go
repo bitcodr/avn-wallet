@@ -79,16 +79,21 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 		helper.ResponseError(res, nil, http.StatusUnprocessableEntity, contentTypeHeader, "W-1003", config.LangConfig.GetString("MESSAGES.PROMOTION_CODE_IS_REQUIRED"))
 		return
 	}
+	//TODO dupplicate promotion check
 	charge, err := w.getVerifyClient(chargeRequest.PromotionCode)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1004", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
 	walletModel := new(model.Wallet)
-	walletModel.Charge = charge
+	walletModel.Charge = charge.GetCharge()
 	userModel := new(model.User)
 	userModel.Cellphone = chargeRequest.Cellphone
 	walletModel.User = userModel
+	transaction := new(model.Transaction)
+	transaction.Cause = chargeRequest.PromotionCode
+	transaction.CauseTimes = charge.GetUsableTimes()
+	walletModel.Transaction = append(walletModel.Transaction, transaction)
 	wallet, err := w.walletService.Insert(walletModel)
 	if err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1005", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
@@ -101,7 +106,7 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 	}
 	defer nats.Close()
 	chargeRequest.Fullname = wallet.User.FirstName + " " + wallet.User.LastName
-	if err := nats.Publish("promotion."+strconv.FormatUint(chargeRequest.Cellphone, 10), chargeRequest); err != nil {
+	if err := nats.Publish("promotion."+chargeRequest.PromotionCode, chargeRequest); err != nil {
 		helper.ResponseError(res, err, http.StatusNotFound, contentTypeHeader, "W-1007", config.LangConfig.GetString("MESSAGES.DATA_NOT_FOUND"))
 		return
 	}
@@ -128,10 +133,10 @@ func (w *walletHandler) Transactions(res http.ResponseWriter, req *http.Request)
 	helper.ResponseOk(res, http.StatusOK, acceptHeader, transactions)
 }
 
-func (w *walletHandler) getVerifyClient(promotionCode string) (float64, error) {
+func (w *walletHandler) getVerifyClient(promotionCode string) (*proto.Response, error) {
 	conn, err := config.GRPCConnection(config.AppConfig.GetString("APP.PROMOTION_GRPC_SERVER"))
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer conn.Close()
 	client := proto.NewPromotionClient(conn)
@@ -141,7 +146,7 @@ func (w *walletHandler) getVerifyClient(promotionCode string) (float64, error) {
 	requestModel.PromotionCode = promotionCode
 	response, err := client.Verify(ctx, requestModel)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return response.GetCharge(), nil
+	return response, nil
 }
