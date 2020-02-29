@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 24/02/2020 12:21:41
+ Date: 01/03/2020 01:38:48
 */
 
 SET NAMES utf8mb4;
@@ -29,7 +29,6 @@ CREATE TABLE `transactions` (
   `cause` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '',
   `description` varchar(255) COLLATE utf8mb4_general_ci DEFAULT '',
   `type` enum('PROMOTION','MANUALLY_INCREASE','MANUALLY_DECREASE','TRANSFER','SYSTEM_DECREASE') COLLATE utf8mb4_general_ci NOT NULL,
-  `status` enum('PENDING','ACTIVE') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'PENDING',
   PRIMARY KEY (`id`),
   KEY `walletID` (`walletID`),
   CONSTRAINT `walletID` FOREIGN KEY (`walletID`) REFERENCES `wallet` (`id`)
@@ -118,12 +117,16 @@ delimiter ;
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `insertWallet`;
 delimiter ;;
-CREATE PROCEDURE `avn_wallet`.`insertWallet`(IN CHARGE_DATA BIGINT(15), IN CELLPHONE_DATA BIGINT(10))
+CREATE PROCEDURE `avn_wallet`.`insertWallet`(IN CHARGE_DATA BIGINT(15), IN CELLPHONE_DATA BIGINT(10), IN CAUSE_DATA VARCHAR(70), IN CAUSE_TIME_DATA BIGINT(10))
 BEGIN
   	
 	DECLARE WALLET_ID BINARY(16) DEFAULT NULL;
 	
 	DECLARE USER_ID BINARY(16) DEFAULT NULL;
+	
+	DECLARE CAUSE_TIME BIGINT(10) DEFAULT 0;
+	
+	DECLARE USER_HAS_CODE INT(1) DEFAULT 0;
 	
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
@@ -137,34 +140,54 @@ BEGIN
 		RESIGNAL;
 		END;
 	
-		##select user
-		SET USER_ID := (SELECT u.`id` FROM `users` as u WHERE u.`cellphone` = CELLPHONE_DATA limit 1);
-
-		##select wallet
-		SET WALLET_ID := (SELECT w.`id` FROM `wallet` as w WHERE w.`userID` = USER_ID);
-
+	
+		SET USER_HAS_CODE := (SELECT 1 FROM `transactions` AS t INNER JOIN `wallet` AS w ON t.`walletID` = w.`id` INNER JOIN `users` AS u ON w.`userID` = u.`id` AND u.`cellphone` = CELLPHONE_DATA WHERE t.`type` = 'PROMOTION' and t.`cause` = CAUSE_DATA);
 		
-		START TRANSACTION;
-					
-          IF(WALLET_ID IS NULL) THEN
-						    
-								SET WALLET_ID := UUID_TO_BIN(UUID());
-								
-								##insert into wallet
-								INSERT INTO `wallet` (`id`, `charge`, `userID`, `createdAt`)
-								VALUES (WALLET_ID, 0, USER_ID, NOW());
-					
-					END IF;
+		IF USER_HAS_CODE = 1 THEN
+			SELECT 'You Registered Promotion Code' AS error;
+		END IF;
+		
+		SET CAUSE_TIME := (SELECT COUNT(`id`) FROM `transactions` WHERE `type` = 'PROMOTION' and `cause` = CAUSE_DATA);
+
+	  IF CAUSE_TIME < CAUSE_TIME_DATA THEN
+		
+				##select user
+				SET USER_ID := (SELECT u.`id` FROM `users` as u WHERE u.`cellphone` = CELLPHONE_DATA limit 1);
+
+				##select wallet
+				SET WALLET_ID := (SELECT w.`id` FROM `wallet` as w WHERE w.`userID` = USER_ID);
+
+				
+				START TRANSACTION;
+							
+							IF(WALLET_ID IS NULL) THEN
 										
+										SET WALLET_ID := UUID_TO_BIN(UUID());
+										
+										##insert into wallet
+										INSERT INTO `wallet` (`id`, `charge`, `userID`, `createdAt`) VALUES (WALLET_ID, 0, USER_ID, NOW());
+										
+							ELSE
+										
+										UPDATE `wallet` AS w
+										SET w.`charge` = w.`charge` + CHARGE_DATA
+										WHERE w.`id` = WALLET_ID;
+							
+							END IF;
+												
+			
+							#TODO the data can come from producer call
+							##insert transaction
+							INSERT INTO `transactions` (`id`,`walletID`,`balance`,`type`,`cause`,`createdAt`)
+							VALUES (UUID_TO_BIN(UUID()),WALLET_ID,CHARGE_DATA,'PROMOTION',CAUSE_DATA,NOW());
+							
+							
+				COMMIT;
+				
 	
-					#TODO the data can come from producer call
-					##insert transaction
-					INSERT INTO `transactions` (`id`,`walletID`,`balance`,`type`,`createdAt`)
-					VALUES (UUID_TO_BIN(UUID()),WALLET_ID,CHARGE_DATA,'PROMOTION',NOW());
-					
-					
-		COMMIT;
-	
+		END IF;
+		
+		
 		SELECT w.`charge`,us.`firstName`,us.`lastName`,us.`cellphone` FROM `wallet` AS w INNER JOIN `users` AS us ON w.`userID`=us.`id` WHERE w.`userID` = USER_ID;
 
 END
@@ -186,64 +209,6 @@ BEGIN
 	(uuid_to_bin(uuid()),"mohsen","majidi",9378675432,"mohsen.majidi@gmail.com","ACTIVE",NOW()),
 	(uuid_to_bin(uuid()),"reza","mahdavi",9219453298,"mr.roshanae@hotmail.com","ACTIVE",NOW()),
 	(uuid_to_bin(uuid()),"farhad","jamshidi",9159674312,"farhad.jamshidi@outlook.com","ACTIVE",NOW());
-
-END
-;;
-delimiter ;
-
--- ----------------------------
--- Procedure structure for updateWallet
--- ----------------------------
-DROP PROCEDURE IF EXISTS `updateWallet`;
-delimiter ;;
-CREATE PROCEDURE `avn_wallet`.`updateWallet`(IN CELLPHONE_DATA BIGINT(10))
-BEGIN
-  	
-	DECLARE WALLET_ID BINARY(16) DEFAULT NULL;
-	
-	DECLARE USER_ID BINARY(16) DEFAULT NULL;
-	
-	DECLARE CHARGE_DATA DECIMAL(10,2) DEFAULT NULL;
-	
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION
-		BEGIN
-		ROLLBACK;
-		RESIGNAL;
-		END;
-	
-	DECLARE EXIT HANDLER FOR SQLWARNING
-		BEGIN
-		ROLLBACK;
-		RESIGNAL;
-		END;
-	
-		##select user
-		SET USER_ID := (SELECT u.`id` FROM `users` AS u WHERE u.`cellphone` = CELLPHONE_DATA LIMIT 1);
-
-		##select wallet
-		SET WALLET_ID := (SELECT w.`id` FROM `wallet` AS w WHERE w.`userID` = USER_ID LIMIT 1);
-
-		##select charge
-		SET CHARGE_DATA := (SELECT t.`balance` FROM `transactions` AS t WHERE t.`walletID` = WALLET_ID ORDER BY t.`createdAt` DESC LIMIT 1);
-		
-		START TRANSACTION;
-				
-					##update transaction
-					UPDATE `transactions` AS t
-					SET t.`status` = 'ACTIVE'
-					WHERE t.`walletID` = WALLET_ID
-					ORDER BY t.`createdAt` DESC 
-					LIMIT 1;
-					
-					##update wallet
-					UPDATE `wallet` AS w
-					SET w.`charge` = w.`charge` + CHARGE_DATA
-					WHERE w.`id` = WALLET_ID;
-					
-					
-		COMMIT;
-	
-		SELECT w.`charge`,us.`firstName`,us.`lastName`,us.`cellphone` FROM `wallet` AS w INNER JOIN `users` AS us ON w.`userID`=us.`id` WHERE w.`userID` = USER_ID;
 
 END
 ;;
