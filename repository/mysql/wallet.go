@@ -58,9 +58,3 @@ func (w *walletRepo) Transactions(cellphone uint64) ([]*model.Transaction, error
 	}
 	return transactions, nil
 }
-
-func (w *walletRepo) Rollback(wallet *model.Wallet) {
-	db := w.app.DB()
-	defer db.Close()
-	_ = db.QueryRow("call rollbackWallet(?,?)", wallet.User.Cellphone, wallet.Charge)
-}
