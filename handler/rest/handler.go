@@ -88,7 +88,7 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 	walletModel.Charge = charge.GetCharge()
 	userModel := new(model.User)
 	userModel.Cellphone = chargeRequest.Cellphone
-	walletModel.User = userModel
+	walletModel.User = userModel 
 	transaction := new(model.Transaction)
 	transaction.Cause = chargeRequest.PromotionCode
 	transaction.CauseTimes = charge.GetUsableTimes()
