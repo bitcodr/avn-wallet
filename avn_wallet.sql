@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 01/03/2020 01:38:48
+ Date: 02/03/2020 11:21:50
 */
 
 SET NAMES utf8mb4;
@@ -85,7 +85,6 @@ BEGIN
 	INNER JOIN `wallet` AS w ON w.`id` = t.`walletID`
 	INNER JOIN `users` AS u ON w.`userID` = u.`id`
 	WHERE u.`cellphone` = CELLPHONE
-	AND t.`status` = 'ACTIVE'
 	ORDER BY t.`createdAt` DESC;
 
 END
@@ -144,48 +143,50 @@ BEGIN
 		SET USER_HAS_CODE := (SELECT 1 FROM `transactions` AS t INNER JOIN `wallet` AS w ON t.`walletID` = w.`id` INNER JOIN `users` AS u ON w.`userID` = u.`id` AND u.`cellphone` = CELLPHONE_DATA WHERE t.`type` = 'PROMOTION' and t.`cause` = CAUSE_DATA);
 		
 		IF USER_HAS_CODE = 1 THEN
-			SELECT 'You Registered Promotion Code' AS error;
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'USER HAS BEEN REGISTERED THE PROMOTION CODE';
 		END IF;
+		
 		
 		SET CAUSE_TIME := (SELECT COUNT(`id`) FROM `transactions` WHERE `type` = 'PROMOTION' and `cause` = CAUSE_DATA);
-
-	  IF CAUSE_TIME < CAUSE_TIME_DATA THEN
 		
-				##select user
-				SET USER_ID := (SELECT u.`id` FROM `users` as u WHERE u.`cellphone` = CELLPHONE_DATA limit 1);
+		IF CAUSE_TIME = CAUSE_TIME_DATA THEN
+			SIGNAL SQLSTATE '46000' SET MESSAGE_TEXT = 'LIMITED USE OF PROMOTION CODE';
+		END IF;	
+		
+		
+		##select user
+		SET USER_ID := (SELECT u.`id` FROM `users` as u WHERE u.`cellphone` = CELLPHONE_DATA limit 1);
 
-				##select wallet
-				SET WALLET_ID := (SELECT w.`id` FROM `wallet` as w WHERE w.`userID` = USER_ID);
+		##select wallet
+		SET WALLET_ID := (SELECT w.`id` FROM `wallet` as w WHERE w.`userID` = USER_ID);
 
 				
-				START TRANSACTION;
+		START TRANSACTION;
 							
-							IF(WALLET_ID IS NULL) THEN
+					IF(WALLET_ID IS NULL) THEN
 										
-										SET WALLET_ID := UUID_TO_BIN(UUID());
+								SET WALLET_ID := UUID_TO_BIN(UUID());
 										
-										##insert into wallet
-										INSERT INTO `wallet` (`id`, `charge`, `userID`, `createdAt`) VALUES (WALLET_ID, 0, USER_ID, NOW());
+								##insert into wallet
+								INSERT INTO `wallet` (`id`, `charge`, `userID`, `createdAt`) VALUES (WALLET_ID, CHARGE_DATA, USER_ID, NOW());
 										
-							ELSE
+					ELSE
 										
-										UPDATE `wallet` AS w
-										SET w.`charge` = w.`charge` + CHARGE_DATA
-										WHERE w.`id` = WALLET_ID;
+								UPDATE `wallet` AS w
+								SET w.`charge` = w.`charge` + CHARGE_DATA
+								WHERE w.`id` = WALLET_ID;
 							
-							END IF;
+					END IF;
 												
 			
-							#TODO the data can come from producer call
-							##insert transaction
-							INSERT INTO `transactions` (`id`,`walletID`,`balance`,`type`,`cause`,`createdAt`)
-							VALUES (UUID_TO_BIN(UUID()),WALLET_ID,CHARGE_DATA,'PROMOTION',CAUSE_DATA,NOW());
+					#TODO the data can come from producer call
+					##insert transaction
+					INSERT INTO `transactions` (`id`,`walletID`,`balance`,`type`,`cause`,`createdAt`)
+					VALUES (UUID_TO_BIN(UUID()),WALLET_ID,CHARGE_DATA,'PROMOTION',CAUSE_DATA,NOW());
 							
 							
-				COMMIT;
+		COMMIT;
 				
-	
-		END IF;
 		
 		
 		SELECT w.`charge`,us.`firstName`,us.`lastName`,us.`cellphone` FROM `wallet` AS w INNER JOIN `users` AS us ON w.`userID`=us.`id` WHERE w.`userID` = USER_ID;
