@@ -22,7 +22,7 @@ func (w *walletRepo) Get(cellphone uint64) (*model.Wallet, error) {
 	defer db.Close()
 	wallet := new(model.Wallet)
 	if err := db.QueryRow("call getWallet(?)", cellphone).Scan(&wallet.Charge); err != nil {
-		return nil, err
+		return nil, nil
 	}
 	return wallet, nil
 }
