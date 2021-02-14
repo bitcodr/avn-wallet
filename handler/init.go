@@ -4,16 +4,16 @@ package handler
 import (
 	"net/http"
 
-	"github.com/amiraliio/avn-wallet/config"
-	"github.com/amiraliio/avn-wallet/domain/service"
-	"github.com/amiraliio/avn-wallet/handler/rest"
-	"github.com/amiraliio/avn-wallet/repository/mysql"
+	"github.com/bitcodr/avn-wallet/config"
+	"github.com/bitcodr/avn-wallet/domain/service"
+	"github.com/bitcodr/avn-wallet/handler/rest"
+	"github.com/bitcodr/avn-wallet/repository/mysql"
 	"github.com/gorilla/mux"
 )
 
 const (
-	REST_GET_WALLET    = "REST_GET_WALLET"
-	REST_INSERT_WALLET = "REST_INSERT_WALLET"
+	REST_GET_WALLET          = "REST_GET_WALLET"
+	REST_INSERT_WALLET       = "REST_INSERT_WALLET"
 	REST_WALLET_TRANSACTIONS = "REST_WALLET_TRANSACTIONS"
 )
 

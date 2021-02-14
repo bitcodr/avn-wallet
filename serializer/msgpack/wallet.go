@@ -2,7 +2,7 @@
 package msgpack
 
 import (
-	"github.com/amiraliio/avn-wallet/domain/model"
+	"github.com/bitcodr/avn-wallet/domain/model"
 	"github.com/pkg/errors"
 	"github.com/vmihailenco/msgpack/v4"
 )

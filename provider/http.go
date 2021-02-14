@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/amiraliio/avn-wallet/config"
-	"github.com/amiraliio/avn-wallet/handler"
+	"github.com/bitcodr/avn-wallet/config"
+	"github.com/bitcodr/avn-wallet/handler"
 	"github.com/gorilla/mux"
 )
 

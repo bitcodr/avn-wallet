@@ -2,9 +2,9 @@
 package mysql
 
 import (
-	"github.com/amiraliio/avn-wallet/config"
-	"github.com/amiraliio/avn-wallet/domain/model"
-	"github.com/amiraliio/avn-wallet/domain/service"
+	"github.com/bitcodr/avn-wallet/config"
+	"github.com/bitcodr/avn-wallet/domain/model"
+	"github.com/bitcodr/avn-wallet/domain/service"
 )
 
 type walletRepo struct {

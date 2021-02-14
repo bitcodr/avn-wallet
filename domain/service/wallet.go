@@ -3,8 +3,8 @@ package service
 import (
 	"errors"
 
-	"github.com/amiraliio/avn-wallet/domain/model"
-	"github.com/amiraliio/avn-wallet/helper"
+	"github.com/bitcodr/avn-wallet/domain/model"
+	"github.com/bitcodr/avn-wallet/helper"
 )
 
 var (

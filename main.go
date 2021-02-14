@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/amiraliio/avn-wallet/provider"
+	"github.com/bitcodr/avn-wallet/provider"
 )
 
 func main() {

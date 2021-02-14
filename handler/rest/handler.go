@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/amiraliio/avn-grpc-promotion-proto/proto"
-	"github.com/amiraliio/avn-wallet/config"
-	"github.com/amiraliio/avn-wallet/domain/model"
-	"github.com/amiraliio/avn-wallet/domain/service"
-	"github.com/amiraliio/avn-wallet/helper"
-	"github.com/amiraliio/avn-wallet/serializer/json"
-	"github.com/amiraliio/avn-wallet/serializer/msgpack"
+	"github.com/bitcodr/avn-grpc-promotion-proto/proto"
+	"github.com/bitcodr/avn-wallet/config"
+	"github.com/bitcodr/avn-wallet/domain/model"
+	"github.com/bitcodr/avn-wallet/domain/service"
+	"github.com/bitcodr/avn-wallet/helper"
+	"github.com/bitcodr/avn-wallet/serializer/json"
+	"github.com/bitcodr/avn-wallet/serializer/msgpack"
 	"github.com/gorilla/mux"
 )
 
@@ -88,7 +88,7 @@ func (w *walletHandler) Insert(res http.ResponseWriter, req *http.Request) {
 	walletModel.Charge = charge.GetCharge()
 	userModel := new(model.User)
 	userModel.Cellphone = chargeRequest.Cellphone
-	walletModel.User = userModel 
+	walletModel.User = userModel
 	transaction := new(model.Transaction)
 	transaction.Cause = chargeRequest.PromotionCode
 	transaction.CauseTimes = charge.GetUsableTimes()
